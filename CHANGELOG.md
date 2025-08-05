@@ -1,3 +1,9 @@
+## [1.0.0-alpha.4](https://github.com/xBirahim/dt-sandbox/compare/v1.0.0-alpha.3...v1.0.0-alpha.4) (2025-08-05)
+
+### Features
+
+* update workflow to prepare and commit configuration changes after release ([9af4bb5](https://github.com/xBirahim/dt-sandbox/commit/9af4bb5ed20330302e126fd3f4193547ffd5e95e))
+
 ## [1.0.0-alpha.3](https://github.com/xBirahim/dt-sandbox/compare/v1.0.0-alpha.2...v1.0.0-alpha.3) (2025-08-05)
 
 ### Features
