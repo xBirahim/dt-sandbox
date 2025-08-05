@@ -60,39 +60,25 @@ jobs:
         run: |
           case "${{ github.ref_name }}" in
             main)
-              echo "app_id=my.examples.demo" >> $GITHUB_OUTPUT
-              echo "app_name=Examples Demo" >> $GITHUB_OUTPUT
-              echo "app_description=Examples Demo- Crafted by Phenisys." >> $GITHUB_OUTPUT
-              echo "schema_id=examples-demo" >> $GITHUB_OUTPUT
-              echo "schema_display_name=Examples Demo" >> $GITHUB_OUTPUT
-              ;;
-            pre-release)
-              echo "app_id=my.teams.observability.prerelease" >> $GITHUB_OUTPUT
-              echo "app_name=(Pre-Release) Microsoft Teams Observability" >> $GITHUB_OUTPUT
-              echo "app_description=Pre-release environment - Crafted by Phenisys." >> $GITHUB_OUTPUT
-              echo "schema_id=ms-teams-observability-prerelease" >> $GITHUB_OUTPUT
-              echo "schema_display_name=(Pre-Release) MS Teams Observability" >> $GITHUB_OUTPUT
-              ;;
-            preview)
-              echo "app_id=my.teams.observability.preview" >> $GITHUB_OUTPUT
-              echo "app_name=(Beta) Microsoft Teams Observability" >> $GITHUB_OUTPUT
-              echo "app_description=Preview environment - Crafted by Phenisys." >> $GITHUB_OUTPUT
-              echo "schema_id=ms-teams-observability-preview" >> $GITHUB_OUTPUT
-              echo "schema_display_name=(Beta) MS Teams Observability" >> $GITHUB_OUTPUT
+              echo "app_id=my.sandbox.demo" >> $GITHUB_OUTPUT
+              echo "app_name=Sandbox Demo" >> $GITHUB_OUTPUT
+              echo "app_description=Sandbox Demo - Crafted by Phenisys." >> $GITHUB_OUTPUT
+              echo "schema_id=sandbox-demo" >> $GITHUB_OUTPUT
+              echo "schema_display_name=Sandbox Demo" >> $GITHUB_OUTPUT
               ;;
             develop)
-              echo "app_id=my.examples.demo.development" >> $GITHUB_OUTPUT
-              echo "app_name=(Alpha) Examples Demo" >> $GITHUB_OUTPUT
-              echo "app_description=Examples Demo - Crafted by Phenisys." >> $GITHUB_OUTPUT
-              echo "schema_id=examples--demo-development" >> $GITHUB_OUTPUT
-              echo "schema_display_name=(Alpha) Examples Demo" >> $GITHUB_OUTPUT
+              echo "app_id=my.sandbox.demo.development" >> $GITHUB_OUTPUT
+              echo "app_name=(Alpha) Sandbox Demo" >> $GITHUB_OUTPUT
+              echo "app_description=(Alpha) Sandbox Demo - Crafted by Phenisys." >> $GITHUB_OUTPUT
+              echo "schema_id=sandbox-demo-development" >> $GITHUB_OUTPUT
+              echo "schema_display_name=(Alpha) Sandbox Demo" >> $GITHUB_OUTPUT
               ;;
             *)
-              echo "app_id=my.teams.observability.feature" >> $GITHUB_OUTPUT
-              echo "app_name=(Feature) Microsoft Teams Observability" >> $GITHUB_OUTPUT
+              echo "app_id=my.sandbox.demo.feature" >> $GITHUB_OUTPUT
+              echo "app_name=(Feature) Sandbox Demo" >> $GITHUB_OUTPUT
               echo "app_description=Feature branch - Crafted by Phenisys." >> $GITHUB_OUTPUT
-              echo "schema_id=ms-teams-observability-feature" >> $GITHUB_OUTPUT
-              echo "schema_display_name=(Feature) MS Teams Observability" >> $GITHUB_OUTPUT
+              echo "schema_id=sandbox-demo-feature" >> $GITHUB_OUTPUT
+              echo "schema_display_name=(Feature) Sandbox Demo" >> $GITHUB_OUTPUT
               ;;
           esac
 
