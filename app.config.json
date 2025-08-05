@@ -4,7 +4,7 @@
     "name": "(Test) Sandbox",
     "version": "1.0.0-alpha.5",
     "description": "Sandbox - Crafted by Phenisys.",
-    "id": "my.sandbox.development",
+    "id": "my.sandbox",
     "scopes": [
       {
         "name": "storage:logs:read",
