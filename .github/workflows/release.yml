@@ -20,11 +20,16 @@ on:
           - release
           - deploy
 
+env:
+  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  
 jobs:
   # JOB 1: Configuration et détection de version
   version-detection:
     name: Version Detection & Configuration
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     if: github.event_name == 'push' || inputs.job_to_run == 'all' || inputs.job_to_run == 'version-detection'
