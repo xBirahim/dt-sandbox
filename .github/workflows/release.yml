@@ -96,6 +96,14 @@ jobs:
               ;;
           esac
 
+          # Print the selected configuration
+          echo "🔧 Selected Configuration for branch '${{ github.ref_name }}':"
+          echo "  - App ID: $(echo '${{ steps.config.outputs.app_id }}')"
+          echo "  - App Name: $(echo '${{ steps.config.outputs.app_name }}')"
+          echo "  - App Description: $(echo '${{ steps.config.outputs.app_description }}')"
+          echo "  - Schema ID: $(echo '${{ steps.config.outputs.schema_id }}')"
+          echo "  - Schema Display Name: $(echo '${{ steps.config.outputs.schema_display_name }}')"
+
       - name: Install dependencies
         run: npm ci
 
