@@ -1,3 +1,9 @@
+## [1.0.0-alpha.2](https://github.com/xBirahim/dt-sandbox/compare/v1.0.0-alpha.1...v1.0.0-alpha.2) (2025-08-05)
+
+### Features
+
+* update application identifiers and descriptions for sandbox environment ([fe8f733](https://github.com/xBirahim/dt-sandbox/commit/fe8f733499b3348594fae6af26418495f6d764d4))
+
 ## 1.0.0-alpha.1 (2025-08-05)
 
 ### Features
