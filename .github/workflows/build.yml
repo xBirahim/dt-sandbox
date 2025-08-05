@@ -1,0 +1,53 @@
+name: Build Check
+
+on:
+  pull_request:
+    branches:
+      - main
+      - develop
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build project
+        run: npm run build
+
+  workflow-summary:
+    name: Workflow Summary
+    runs-on: ubuntu-latest
+    needs: build
+    if: always()
+    steps:
+      - name: Generate summary
+        run: |
+          echo "# 📊 Workflow Summary" >> $GITHUB_STEP_SUMMARY
+            echo "## ✅ Build Status" >> $GITHUB_STEP_SUMMARY
+            if [ "${{ job.status }}" == "success" ]; then
+              echo "- Build completed successfully." >> $GITHUB_STEP_SUMMARY
+            else
+              echo "- Build failed." >> $GITHUB_STEP_SUMMARY
+            fi
+            echo "## 🛠️ Build Artifacts" >> $GITHUB_STEP_SUMMARY
+
+            if [ -d "dist" ]; then
+              echo "- Artifacts are available in the \`dist\` directory." >> $GITHUB_STEP_SUMMARY
+            else
+              echo "- No artifacts found." >> $GITHUB_STEP_SUMMARY
+            fi
+            echo "## 📅 Build Time" >> $GITHUB_STEP_SUMMARY
+            echo "- Build started at: ${{ github.event.head_commit.timestamp }}" >> $GITHUB_STEP_SUMMARY
+            echo "- Build completed at: $(date -u +"%Y-%m-%dT%H:%M:%SZ")" >> $GITHUB_STEP_SUMMARY
+            echo "- Total duration: $(( $(date -u +"%s") - $(date -u -d "${{ github.event.head_commit.timestamp }}" +"%s") )) seconds" >> $GITHUB_STEP_SUMMARY
