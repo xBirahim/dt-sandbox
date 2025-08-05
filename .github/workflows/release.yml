@@ -107,9 +107,9 @@ jobs:
           # Run semantic-release in dry-run mode to determine next version
           output=$(npx semantic-release --dry-run --no-ci)
           echo "DEBUG: semantic-release output -> $output"
-          # Extract everything after "is " on the matching line
+          # Extract everything after "is " on the matching line (case insensitive)
           nextVersion=$(printf "%s" "$output" \
-            | grep -oE 'The next release version is .*' \
+            | grep -oiE '[Tt]he next release version is .*' \
             | sed -E 's/^.*is (.*)$/\1/' \
             || true)
           if [ -z "$nextVersion" ]; then
