@@ -229,19 +229,12 @@ jobs:
           path: ./out/artifact.zip
           retention-days: 30
 
-      # MODIFIÉ: Ne pas faire de commit ici pour éviter les conflits
-      - name: Save configuration changes for later commit
+      # MODIFIÉ: Ne pas faire de commit ici pour éviter les conflits avec semantic-release
+      - name: Prepare configuration changes
         run: |
-          echo "💾 Saving configuration changes for later commit..."
+          echo "💾 Configuration changes prepared for commit after release..."
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add app.config.json
-          SCHEMA_FILE="settings/schemas/ms-teams-observability.schema.json"
-          if [ -f "$SCHEMA_FILE" ]; then
-            git add "$SCHEMA_FILE"
-          fi
-          # Créer un commit mais ne pas le pusher encore
-          git commit -m "chore: bump version to ${{ needs.version-detection.outputs.next_version }} for ${{ github.ref_name }}" || echo "No changes to commit"
 
   # JOB 3: Release GitHub
   release:
@@ -320,6 +313,25 @@ jobs:
           # Exécuter semantic-release
           npx semantic-release
           echo "✅ GitHub release created"
+
+      - name: Commit and push configuration changes
+        run: |
+          VERSION="${{ needs.version-detection.outputs.next_version }}"
+          SCHEMA_FILE="settings/schemas/ms-teams-observability.schema.json"
+
+          # Vérifier s'il y a des changements à committer
+          if git diff --quiet app.config.json "$SCHEMA_FILE" 2>/dev/null || git diff --quiet app.config.json 2>/dev/null; then
+            echo "ℹ️  No changes in configuration files; skipping commit and push."
+          else
+            echo "💾 Committing and pushing configuration changes..."
+            git add app.config.json
+            if [ -f "$SCHEMA_FILE" ]; then
+              git add "$SCHEMA_FILE"
+            fi
+            git commit -m "chore: update configuration files to version $VERSION [skip ci]"
+            git push origin ${{ github.ref_name }}
+            echo "✅ Configuration changes committed and pushed"
+          fi
 
   # JOB 4: Déploiement Dynatrace
   deploy:
