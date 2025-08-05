@@ -1,13 +1,19 @@
 {
   "environmentUrl": "https://kso25422.apps.dynatrace.com/",
   "app": {
-    "name": "Examples",
-    "version": "0.0.0",
-    "description": "This is a Dynatrace Sandbox example application",
-    "id": "my.examples",
+    "name": "(Alpha) Examples Demo",
+    "version": "1.0.0-alpha.2",
+    "description": "Examples Demo - Crafted by Phenisys.",
+    "id": "my.examples.demo.development",
     "scopes": [
-      { "name": "storage:logs:read", "comment": "default template" },
-      { "name": "storage:buckets:read", "comment": "default template" }
+      {
+        "name": "storage:logs:read",
+        "comment": "default template"
+      },
+      {
+        "name": "storage:buckets:read",
+        "comment": "default template"
+      }
     ]
   }
 }

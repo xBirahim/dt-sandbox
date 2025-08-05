@@ -1,0 +1,345 @@
+# .github/workflows/release.yml
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  workflow_dispatch:
+    inputs:
+      job_to_run:
+        description: "Select job to run"
+        required: false
+        default: "all"
+        type: choice
+        options:
+          - all
+          - version-detection
+          - build-artifact
+          - release
+          - deploy
+
+env:
+  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+jobs:
+  # JOB 1: Configuration et détection de version
+  version-detection:
+    name: Version Detection & Configuration
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    if: github.event_name == 'push' || inputs.job_to_run == 'all' || inputs.job_to_run == 'version-detection'
+    outputs:
+      do_release: ${{ steps.version.outputs.do_release }}
+      next_version: ${{ steps.version.outputs.next_version }}
+      app_id: ${{ steps.config.outputs.app_id }}
+      app_name: ${{ steps.config.outputs.app_name }}
+      app_description: ${{ steps.config.outputs.app_description }}
+      schema_id: ${{ steps.config.outputs.schema_id }}
+      schema_display_name: ${{ steps.config.outputs.schema_display_name }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      - name: Set branch-specific configuration
+        id: config
+        run: |
+          case "${{ github.ref_name }}" in
+            main)
+              echo "app_id=my.examples.demo" >> $GITHUB_OUTPUT
+              echo "app_name=Examples Demo" >> $GITHUB_OUTPUT
+              echo "app_description=Examples Demo- Crafted by Phenisys." >> $GITHUB_OUTPUT
+              echo "schema_id=examples-demo" >> $GITHUB_OUTPUT
+              echo "schema_display_name=Examples Demo" >> $GITHUB_OUTPUT
+              ;;
+            pre-release)
+              echo "app_id=my.teams.observability.prerelease" >> $GITHUB_OUTPUT
+              echo "app_name=(Pre-Release) Microsoft Teams Observability" >> $GITHUB_OUTPUT
+              echo "app_description=Pre-release environment - Crafted by Phenisys." >> $GITHUB_OUTPUT
+              echo "schema_id=ms-teams-observability-prerelease" >> $GITHUB_OUTPUT
+              echo "schema_display_name=(Pre-Release) MS Teams Observability" >> $GITHUB_OUTPUT
+              ;;
+            preview)
+              echo "app_id=my.teams.observability.preview" >> $GITHUB_OUTPUT
+              echo "app_name=(Beta) Microsoft Teams Observability" >> $GITHUB_OUTPUT
+              echo "app_description=Preview environment - Crafted by Phenisys." >> $GITHUB_OUTPUT
+              echo "schema_id=ms-teams-observability-preview" >> $GITHUB_OUTPUT
+              echo "schema_display_name=(Beta) MS Teams Observability" >> $GITHUB_OUTPUT
+              ;;
+            develop)
+              echo "app_id=my.examples.demo.development" >> $GITHUB_OUTPUT
+              echo "app_name=(Alpha) Examples Demo" >> $GITHUB_OUTPUT
+              echo "app_description=Examples Demo - Crafted by Phenisys." >> $GITHUB_OUTPUT
+              echo "schema_id=examples--demo-development" >> $GITHUB_OUTPUT
+              echo "schema_display_name=(Alpha) Examples Demo" >> $GITHUB_OUTPUT
+              ;;
+            *)
+              echo "app_id=my.teams.observability.feature" >> $GITHUB_OUTPUT
+              echo "app_name=(Feature) Microsoft Teams Observability" >> $GITHUB_OUTPUT
+              echo "app_description=Feature branch - Crafted by Phenisys." >> $GITHUB_OUTPUT
+              echo "schema_id=ms-teams-observability-feature" >> $GITHUB_OUTPUT
+              echo "schema_display_name=(Feature) MS Teams Observability" >> $GITHUB_OUTPUT
+              ;;
+          esac
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Detect next version
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        id: version
+        run: |
+          # Run semantic-release in dry-run mode to determine next version
+          output=$(npx semantic-release --dry-run --no-ci)
+          echo "DEBUG: semantic-release output -> $output"
+          # Extract everything after "is " on the matching line (case insensitive)
+          nextVersion=$(printf "%s" "$output" \
+            | grep -oiE '[Tt]he next release version is .*' \
+            | sed -E 's/^.*is (.*)$/\1/' \
+            || true)
+          if [ -z "$nextVersion" ]; then
+            echo "no_version=true" >> $GITHUB_OUTPUT
+            echo "do_release=false" >> $GITHUB_OUTPUT
+            echo "next_version=" >> $GITHUB_OUTPUT
+            echo "❌ No new version detected"
+          else
+            echo "no_version=false" >> $GITHUB_OUTPUT
+            echo "do_release=true" >> $GITHUB_OUTPUT
+            echo "next_version=$nextVersion" >> $GITHUB_OUTPUT
+            echo "✅ Next version detected: $nextVersion"
+          fi
+
+  # JOB 2: Build et génération d'artifact
+  build-artifact:
+    name: Build & Generate Artifact
+    runs-on: ubuntu-latest
+    needs: version-detection
+    if: needs.version-detection.outputs.do_release == 'true' && (github.event_name == 'push' || inputs.job_to_run == 'all' || inputs.job_to_run == 'build-artifact')
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Update configuration files with version
+        run: |
+          VERSION="${{ needs.version-detection.outputs.next_version }}"
+
+          echo "🔧 Updating configuration with version: $VERSION"
+
+          # Update app.config.json with version and branch-specific config
+          jq --arg ver "$VERSION" \
+             --arg id "${{ needs.version-detection.outputs.app_id }}" \
+             --arg name "${{ needs.version-detection.outputs.app_name }}" \
+             --arg desc "${{ needs.version-detection.outputs.app_description }}" \
+             '.app.version = $ver | .app.id = $id | .app.name = $name | .app.description = $desc' \
+             app.config.json > tmp.json && mv tmp.json app.config.json
+
+          # Update schema file with branch config
+          SCHEMA_FILE="settings/schemas/ms-teams-observability.schema.json"
+          if [ -f "$SCHEMA_FILE" ]; then
+            jq --arg schemaId "${{ needs.version-detection.outputs.schema_id }}" \
+               --arg displayName "${{ needs.version-detection.outputs.schema_display_name }}" \
+               '.schemaId = $schemaId | .displayName = $displayName' \
+               "$SCHEMA_FILE" > tmp_schema.json && mv tmp_schema.json "$SCHEMA_FILE"
+            echo "✅ Schema file updated"
+          else
+            echo "⚠️  Schema file not found: $SCHEMA_FILE"
+          fi
+
+      - name: Build application
+        run: |
+          echo "🏗️  Building application..."
+          npm run build
+          echo "✅ Build completed"
+
+      - name: Generate deployment artifact
+        env:
+          DT_APP_OAUTH_CLIENT_ID: ${{ secrets.DT_APP_OAUTH_CLIENT_ID }}
+          DT_APP_OAUTH_CLIENT_SECRET: ${{ secrets.DT_APP_OAUTH_CLIENT_SECRET }}
+        run: |
+          echo "📦 Generating deployment artifact..."
+          npx dt-app deploy --skip-build --dry-run
+          echo "✅ Artifact generated"
+
+      - name: Verify and upload artifact
+        run: |
+          if [ ! -f "./out/artifact.zip" ]; then
+            echo "❌ Error: artifact.zip not found in ./out/"
+            exit 1
+          fi
+          ARTIFACT_SIZE=$(du -h ./out/artifact.zip | cut -f1)
+          echo "✅ Artifact verified - Size: $ARTIFACT_SIZE"
+          echo "📋 Artifact contains version: ${{ needs.version-detection.outputs.next_version }}"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: deployment-artifact-${{ needs.version-detection.outputs.next_version }}
+          path: ./out/artifact.zip
+          retention-days: 30
+
+      - name: Commit configuration changes
+        run: |
+          VERSION="${{ needs.version-detection.outputs.next_version }}"
+          SCHEMA_FILE="settings/schemas/ms-teams-observability.schema.json"
+
+          # Check if any files changed before committing
+          if git diff --quiet app.config.json "$SCHEMA_FILE" 2>/dev/null || git diff --quiet app.config.json 2>/dev/null; then
+            echo "ℹ️  No changes in configuration files; skipping commit and push."
+          else
+            echo "💾 Committing configuration changes..."
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git add app.config.json
+            if [ -f "$SCHEMA_FILE" ]; then
+              git add "$SCHEMA_FILE"
+            fi
+            git commit -m "chore: bump version to $VERSION for ${{ github.ref_name }}"
+            git push
+            echo "✅ Configuration committed and pushed"
+          fi
+
+  # JOB 3: Release GitHub
+  release:
+    name: GitHub Release
+    runs-on: ubuntu-latest
+    needs: [version-detection, build-artifact]
+    if: needs.version-detection.outputs.do_release == 'true' && (github.event_name == 'push' || inputs.job_to_run == 'all' || inputs.job_to_run == 'release')
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: deployment-artifact-${{ needs.version-detection.outputs.next_version }}
+          path: ./out/
+
+      - name: Create GitHub Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "🚀 Creating GitHub release for version ${{ needs.version-detection.outputs.next_version }}..."
+          npx semantic-release
+          echo "✅ GitHub release created"
+
+  # JOB 4: Déploiement Dynatrace
+  deploy:
+    name: Deploy to Dynatrace
+    runs-on: ubuntu-latest
+    environment: dynatrace
+    needs: [version-detection, build-artifact, release]
+    if: needs.version-detection.outputs.do_release == 'true' && (github.event_name == 'push' || inputs.job_to_run == 'all' || inputs.job_to_run == 'deploy')
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build application
+        run: |
+          echo "🏗️  Building application..."
+          npx dt-app build
+          echo "✅ Build completed"
+
+      - name: Print Commits
+        run: |
+          echo "📜 Commits since last release:"
+          git log --pretty=format:"%h - %s (%an)" --no-merges $(git describe --tags --abbrev=0)..HEAD
+
+      - name: Deploy to Dynatrace
+        env:
+          DT_APP_OAUTH_CLIENT_ID: ${{ secrets.DT_APP_OAUTH_CLIENT_ID }}
+          DT_APP_OAUTH_CLIENT_SECRET: ${{ secrets.DT_APP_OAUTH_CLIENT_SECRET }}
+        run: |
+          echo "🚀 Deploying to Dynatrace..."
+          echo "📋 Version: ${{ needs.version-detection.outputs.next_version }}"
+          echo "📋 App ID: ${{ needs.version-detection.outputs.app_id }}"
+          npx dt-app deploy --skip-build
+          echo "✅ Deployment to Dynatrace completed"
+
+  # JOB 5: Résumé du workflow
+  workflow-summary:
+    name: Workflow Summary
+    runs-on: ubuntu-latest
+    needs: [version-detection, build-artifact, release, deploy]
+    if: always() && (github.event_name == 'push' || inputs.job_to_run == 'all')
+
+    steps:
+      - name: Workflow Summary
+        run: |
+          echo "# 📊 Workflow Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Results:" >> $GITHUB_STEP_SUMMARY
+          echo "- **Branch:** ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Version Detection:** ${{ needs.version-detection.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Build & Artifact:** ${{ needs.build-artifact.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **GitHub Release:** ${{ needs.release.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Dynatrace Deploy:** ${{ needs.deploy.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [ "${{ needs.version-detection.outputs.do_release }}" == "true" ]; then
+            echo "## 🎉 Release Information:" >> $GITHUB_STEP_SUMMARY
+            echo "- **Version:** ${{ needs.version-detection.outputs.next_version }}" >> $GITHUB_STEP_SUMMARY
+            echo "- **App ID:** ${{ needs.version-detection.outputs.app_id }}" >> $GITHUB_STEP_SUMMARY
+            echo "- **App Name:** ${{ needs.version-detection.outputs.app_name }}" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "## ℹ️ No release created (no version bump needed)" >> $GITHUB_STEP_SUMMARY
+          fi

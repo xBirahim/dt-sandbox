@@ -38,6 +38,7 @@ export const FormValidationExample = () => {
       title: "Form submitted successfully",
       message: JSON.stringify(data, null, 2),
       type: "success",
+      lifespan: 2000,
     });
 
     // Traitement backend ou autre logique ici

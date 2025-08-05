@@ -42,11 +42,17 @@
   },
   "devDependencies": {
     "@microsoft/eslint-plugin-sdl": "^0.2.0",
+    "@semantic-release/changelog": "^6.0.3",
+    "@semantic-release/commit-analyzer": "^13.0.1",
+    "@semantic-release/git": "^10.0.1",
+    "@semantic-release/github": "^11.0.3",
+    "@semantic-release/release-notes-generator": "^14.0.3",
     "@types/node": "^16.11.34",
     "@types/react": "^18.3.20",
     "@types/react-dom": "^18.3.5",
     "@typescript-eslint/eslint-plugin": "^5.23.0",
     "@typescript-eslint/parser": "^5.23.0",
+    "conventional-changelog-conventionalcommits": "^9.1.0",
     "dt-app": "0.147.0",
     "eslint": "^8.15.0",
     "eslint-plugin-deprecation": "^3.0.0",
@@ -54,6 +60,7 @@
     "eslint-plugin-react": "^7.29.4",
     "eslint-plugin-react-hooks": "^4.5.0",
     "prettier": "3.6.2",
+    "semantic-release": "^24.2.7",
     "typescript": "5.6.2"
   }
 }

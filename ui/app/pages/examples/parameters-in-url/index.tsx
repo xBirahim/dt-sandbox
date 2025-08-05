@@ -7,35 +7,45 @@ import {
   SelectV2,
   TextInput,
 } from "@dynatrace/strato-components-preview/forms";
+import { showToast } from "@dynatrace/strato-components-preview/notifications";
 import { Button } from "@dynatrace/strato-components/buttons";
 import { Divider, Flex } from "@dynatrace/strato-components/layouts";
 import { Blockquote } from "@dynatrace/strato-components/typography";
 import { PageLayout } from "app/components/PageLayout";
-import { parseAsArrayOf, parseAsBoolean, parseAsIsoDate, parseAsString, useQueryState } from "nuqs";
+import { parseAsArrayOf, parseAsBoolean, parseAsIsoDate, parseAsString, useQueryStates } from "nuqs";
 import React, { useState } from "react";
 
 export const ParametersInUrlExample = () => {
-  const [textParam, setTextParam] = useQueryState("text", parseAsString.withDefault(""));
-  const [checkedParam, setCheckedParam] = useQueryState("checked", parseAsBoolean.withDefault(false));
-  const [dateParam, setDateParam] = useQueryState("date", parseAsIsoDate.withDefault(new Date()));
-  const [radioValueParam, setRadioValueParam] = useQueryState("radio", parseAsString.withDefault("hosts"));
-  const [selectValueParam, setSelectValueParam] = useQueryState(
-    "select",
-    parseAsArrayOf(parseAsString).withDefault(["austria"]),
-  );
-  //
-  const [text, setText] = useState(textParam);
-  const [checked, setChecked] = useState(checkedParam);
-  const [date, setDate] = useState<Date>(dateParam);
-  const [radioValue, setRadioValue] = useState(radioValueParam);
-  const [selectValue, setSelectValue] = useState<string[]>(selectValueParam);
+  const [params, setParams] = useQueryStates({
+    text: parseAsString.withDefault(""),
+    checked: parseAsBoolean.withDefault(false),
+    date: parseAsIsoDate.withDefault(new Date()),
+    radio: parseAsString.withDefault("hosts"),
+    select: parseAsArrayOf(parseAsString).withDefault(["austria"]),
+  });
+
+  const [text, setText] = useState(params.text);
+  const [checked, setChecked] = useState(params.checked);
+  const [date, setDate] = useState<Date>(params.date);
+  const [radioValue, setRadioValue] = useState(params.radio);
+  const [selectValue, setSelectValue] = useState<string[]>(params.select);
 
   const handleSubmit = () => {
-    setTextParam(text);
-    setCheckedParam(checked);
-    setDateParam(date);
-    setRadioValueParam(radioValue);
-    setSelectValueParam(selectValue);
+    const newParams = {
+      text,
+      checked,
+      date: date,
+      radio: radioValue,
+      select: selectValue,
+    };
+    setParams(newParams);
+
+    showToast({
+      title: "Form Submitted",
+      message: JSON.stringify(newParams, null, 2),
+      type: "success",
+      lifespan: 2000,
+    });
   };
 
   return (

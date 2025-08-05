@@ -1,0 +1,55 @@
+{
+  "branches": [
+    {
+      "name": "main",
+      "prerelease": false
+    },
+    {
+      "name": "develop",
+      "prerelease": "alpha"
+    }
+  ],
+  "plugins": [
+    [
+      "@semantic-release/commit-analyzer",
+      {
+        "preset": "conventionalcommits"
+      }
+    ],
+    [
+      "@semantic-release/release-notes-generator",
+      {
+        "preset": "conventionalcommits"
+      }
+    ],
+    [
+      "@semantic-release/changelog",
+      {
+        "changelogFile": "CHANGELOG.md"
+      }
+    ],
+    [
+      "@semantic-release/github",
+      {
+        "assets": [
+          {
+            "path": "./out/artifact.zip",
+            "name": "ms-teams-dynatrace-app-${nextRelease.gitTag}.zip",
+            "label": "MS Teams Dynatrace App by Phenisys"
+          }
+        ]
+      }
+    ],
+    [
+      "@semantic-release/git",
+      {
+        "assets": [
+          "CHANGELOG.md",
+          "package.json",
+          "package-lock.json"
+        ],
+        "message": "chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}"
+      }
+    ]
+  ]
+}
