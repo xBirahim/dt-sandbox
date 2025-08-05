@@ -49,6 +49,14 @@ jobs:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
 
+      # NOUVEAU: Forcer la synchronisation avec la branche distante
+      - name: Sync with remote branch
+        run: |
+          echo "🔄 Synchronizing with remote branch..."
+          git fetch origin
+          git reset --hard origin/${{ github.ref_name }}
+          echo "✅ Branch synchronized"
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -58,43 +66,45 @@ jobs:
       - name: Set branch-specific configuration
         id: config
         run: |
+          # Définir les variables d'abord
           case "${{ github.ref_name }}" in
             main)
-              echo "app_id=my.examples.demo" >> $GITHUB_OUTPUT
-              echo "app_name=Examples Demo" >> $GITHUB_OUTPUT
-              echo "app_description=Examples Demo- Crafted by Phenisys." >> $GITHUB_OUTPUT
-              echo "schema_id=examples-demo" >> $GITHUB_OUTPUT
-              echo "schema_display_name=Examples Demo" >> $GITHUB_OUTPUT
-              ;;
-            pre-release)
-              echo "app_id=my.teams.observability.prerelease" >> $GITHUB_OUTPUT
-              echo "app_name=(Pre-Release) Microsoft Teams Observability" >> $GITHUB_OUTPUT
-              echo "app_description=Pre-release environment - Crafted by Phenisys." >> $GITHUB_OUTPUT
-              echo "schema_id=ms-teams-observability-prerelease" >> $GITHUB_OUTPUT
-              echo "schema_display_name=(Pre-Release) MS Teams Observability" >> $GITHUB_OUTPUT
-              ;;
-            preview)
-              echo "app_id=my.teams.observability.preview" >> $GITHUB_OUTPUT
-              echo "app_name=(Beta) Microsoft Teams Observability" >> $GITHUB_OUTPUT
-              echo "app_description=Preview environment - Crafted by Phenisys." >> $GITHUB_OUTPUT
-              echo "schema_id=ms-teams-observability-preview" >> $GITHUB_OUTPUT
-              echo "schema_display_name=(Beta) MS Teams Observability" >> $GITHUB_OUTPUT
+              APP_ID="my.sandbox"
+              APP_NAME="Sandbox"
+              APP_DESCRIPTION="Sandbox - Crafted by Phenisys."
+              SCHEMA_ID="sandbox"
+              SCHEMA_DISPLAY_NAME="Sandbox Demo"
               ;;
             develop)
-              echo "app_id=my.examples.demo.development" >> $GITHUB_OUTPUT
-              echo "app_name=(Alpha) Examples Demo" >> $GITHUB_OUTPUT
-              echo "app_description=Examples Demo - Crafted by Phenisys." >> $GITHUB_OUTPUT
-              echo "schema_id=examples--demo-development" >> $GITHUB_OUTPUT
-              echo "schema_display_name=(Alpha) Examples Demo" >> $GITHUB_OUTPUT
+              APP_ID="my.sandbox.development"
+              APP_NAME="(Test) Sandbox"
+              APP_DESCRIPTION="Sandbox - Crafted by Phenisys."
+              SCHEMA_ID="sandbox-development"
+              SCHEMA_DISPLAY_NAME="(Test) Sandbox"
               ;;
             *)
-              echo "app_id=my.teams.observability.feature" >> $GITHUB_OUTPUT
-              echo "app_name=(Feature) Microsoft Teams Observability" >> $GITHUB_OUTPUT
-              echo "app_description=Feature branch - Crafted by Phenisys." >> $GITHUB_OUTPUT
-              echo "schema_id=ms-teams-observability-feature" >> $GITHUB_OUTPUT
-              echo "schema_display_name=(Feature) MS Teams Observability" >> $GITHUB_OUTPUT
+              APP_ID="my.sandbox.feature"
+              APP_NAME="(Feature) Sandbox - ${{ github.ref_name }}"
+              APP_DESCRIPTION="(Feature) Sandbox - Crafted by Phenisys."
+              SCHEMA_ID="sandbox-feature"
+              SCHEMA_DISPLAY_NAME="(Feature) Sandbox - ${{ github.ref_name }}"
               ;;
           esac
+
+          # Écrire dans GITHUB_OUTPUT
+          echo "app_id=$APP_ID" >> $GITHUB_OUTPUT
+          echo "app_name=$APP_NAME" >> $GITHUB_OUTPUT
+          echo "app_description=$APP_DESCRIPTION" >> $GITHUB_OUTPUT
+          echo "schema_id=$SCHEMA_ID" >> $GITHUB_OUTPUT
+          echo "schema_display_name=$SCHEMA_DISPLAY_NAME" >> $GITHUB_OUTPUT
+
+          # Afficher la configuration sélectionnée
+          echo "🔧 Selected Configuration for branch '${{ github.ref_name }}':"
+          echo "  - App ID: $APP_ID"
+          echo "  - App Name: $APP_NAME"
+          echo "  - App Description: $APP_DESCRIPTION"
+          echo "  - Schema ID: $SCHEMA_ID"
+          echo "  - Schema Display Name: $SCHEMA_DISPLAY_NAME"
 
       - name: Install dependencies
         run: npm ci
@@ -104,14 +114,18 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         id: version
         run: |
+          echo "🔍 Detecting next version..."
           # Run semantic-release in dry-run mode to determine next version
-          output=$(npx semantic-release --dry-run --no-ci)
-          echo "DEBUG: semantic-release output -> $output"
+          output=$(npx semantic-release --dry-run --no-ci 2>&1)
+          echo "DEBUG: semantic-release output:"
+          echo "$output"
+
           # Extract everything after "is " on the matching line (case insensitive)
           nextVersion=$(printf "%s" "$output" \
             | grep -oiE '[Tt]he next release version is .*' \
             | sed -E 's/^.*is (.*)$/\1/' \
             || true)
+
           if [ -z "$nextVersion" ]; then
             echo "no_version=true" >> $GITHUB_OUTPUT
             echo "do_release=false" >> $GITHUB_OUTPUT
@@ -139,6 +153,14 @@ jobs:
         with:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
+
+      # NOUVEAU: Forcer la synchronisation avec la branche distante
+      - name: Sync with remote branch
+        run: |
+          echo "🔄 Synchronizing with remote branch..."
+          git fetch origin
+          git reset --hard origin/${{ github.ref_name }}
+          echo "✅ Branch synchronized"
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -207,26 +229,12 @@ jobs:
           path: ./out/artifact.zip
           retention-days: 30
 
-      - name: Commit configuration changes
+      # MODIFIÉ: Ne pas faire de commit ici pour éviter les conflits avec semantic-release
+      - name: Prepare configuration changes
         run: |
-          VERSION="${{ needs.version-detection.outputs.next_version }}"
-          SCHEMA_FILE="settings/schemas/ms-teams-observability.schema.json"
-
-          # Check if any files changed before committing
-          if git diff --quiet app.config.json "$SCHEMA_FILE" 2>/dev/null || git diff --quiet app.config.json 2>/dev/null; then
-            echo "ℹ️  No changes in configuration files; skipping commit and push."
-          else
-            echo "💾 Committing configuration changes..."
-            git config user.name "github-actions[bot]"
-            git config user.email "github-actions[bot]@users.noreply.github.com"
-            git add app.config.json
-            if [ -f "$SCHEMA_FILE" ]; then
-              git add "$SCHEMA_FILE"
-            fi
-            git commit -m "chore: bump version to $VERSION for ${{ github.ref_name }}"
-            git push
-            echo "✅ Configuration committed and pushed"
-          fi
+          echo "💾 Configuration changes prepared for commit after release..."
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
 
   # JOB 3: Release GitHub
   release:
@@ -246,6 +254,14 @@ jobs:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
 
+      # NOUVEAU: Forcer la synchronisation avec la branche distante
+      - name: Sync with remote branch
+        run: |
+          echo "🔄 Synchronizing with remote branch..."
+          git fetch origin
+          git reset --hard origin/${{ github.ref_name }}
+          echo "✅ Branch synchronized"
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -261,13 +277,61 @@ jobs:
           name: deployment-artifact-${{ needs.version-detection.outputs.next_version }}
           path: ./out/
 
+      # NOUVEAU: Appliquer les changements de configuration avant la release
+      - name: Apply configuration changes
+        run: |
+          VERSION="${{ needs.version-detection.outputs.next_version }}"
+          echo "🔧 Applying configuration changes for version: $VERSION"
+
+          # Update app.config.json with version and branch-specific config
+          jq --arg ver "$VERSION" \
+             --arg id "${{ needs.version-detection.outputs.app_id }}" \
+             --arg name "${{ needs.version-detection.outputs.app_name }}" \
+             --arg desc "${{ needs.version-detection.outputs.app_description }}" \
+             '.app.version = $ver | .app.id = $id | .app.name = $name | .app.description = $desc' \
+             app.config.json > tmp.json && mv tmp.json app.config.json
+
+          # Update schema file with branch config
+          SCHEMA_FILE="settings/schemas/ms-teams-observability.schema.json"
+          if [ -f "$SCHEMA_FILE" ]; then
+            jq --arg schemaId "${{ needs.version-detection.outputs.schema_id }}" \
+               --arg displayName "${{ needs.version-detection.outputs.schema_display_name }}" \
+               '.schemaId = $schemaId | .displayName = $displayName' \
+               "$SCHEMA_FILE" > tmp_schema.json && mv tmp_schema.json "$SCHEMA_FILE"
+            echo "✅ Schema file updated"
+          fi
+
       - name: Create GitHub Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           echo "🚀 Creating GitHub release for version ${{ needs.version-detection.outputs.next_version }}..."
+          # Configurer git pour semantic-release
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Exécuter semantic-release
           npx semantic-release
           echo "✅ GitHub release created"
+
+      - name: Commit and push configuration changes
+        run: |
+          VERSION="${{ needs.version-detection.outputs.next_version }}"
+          SCHEMA_FILE="settings/schemas/ms-teams-observability.schema.json"
+
+          # Vérifier s'il y a des changements à committer
+          if git diff --quiet app.config.json "$SCHEMA_FILE" 2>/dev/null || git diff --quiet app.config.json 2>/dev/null; then
+            echo "ℹ️  No changes in configuration files; skipping commit and push."
+          else
+            echo "💾 Committing and pushing configuration changes..."
+            git add app.config.json
+            if [ -f "$SCHEMA_FILE" ]; then
+              git add "$SCHEMA_FILE"
+            fi
+            git commit -m "chore: update configuration files to version $VERSION [skip ci]"
+            git push origin ${{ github.ref_name }}
+            echo "✅ Configuration changes committed and pushed"
+          fi
 
   # JOB 4: Déploiement Dynatrace
   deploy:
@@ -284,6 +348,14 @@ jobs:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
 
+      # NOUVEAU: Récupérer la dernière version avec les tags
+      - name: Sync with remote and get latest version
+        run: |
+          echo "🔄 Synchronizing with remote branch and tags..."
+          git fetch origin --tags
+          git reset --hard origin/${{ github.ref_name }}
+          echo "✅ Branch and tags synchronized"
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -292,6 +364,30 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+
+      # NOUVEAU: Appliquer les changements de configuration pour le déploiement
+      - name: Apply configuration changes
+        run: |
+          VERSION="${{ needs.version-detection.outputs.next_version }}"
+          echo "🔧 Applying configuration changes for deployment: $VERSION"
+
+          # Update app.config.json with version and branch-specific config
+          jq --arg ver "$VERSION" \
+             --arg id "${{ needs.version-detection.outputs.app_id }}" \
+             --arg name "${{ needs.version-detection.outputs.app_name }}" \
+             --arg desc "${{ needs.version-detection.outputs.app_description }}" \
+             '.app.version = $ver | .app.id = $id | .app.name = $name | .app.description = $desc' \
+             app.config.json > tmp.json && mv tmp.json app.config.json
+
+          # Update schema file with branch config
+          SCHEMA_FILE="settings/schemas/ms-teams-observability.schema.json"
+          if [ -f "$SCHEMA_FILE" ]; then
+            jq --arg schemaId "${{ needs.version-detection.outputs.schema_id }}" \
+               --arg displayName "${{ needs.version-detection.outputs.schema_display_name }}" \
+               '.schemaId = $schemaId | .displayName = $displayName' \
+               "$SCHEMA_FILE" > tmp_schema.json && mv tmp_schema.json "$SCHEMA_FILE"
+            echo "✅ Schema file updated"
+          fi
 
       - name: Build application
         run: |
@@ -302,7 +398,13 @@ jobs:
       - name: Print Commits
         run: |
           echo "📜 Commits since last release:"
-          git log --pretty=format:"%h - %s (%an)" --no-merges $(git describe --tags --abbrev=0)..HEAD
+          LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "No previous tag")
+          if [ "$LAST_TAG" != "No previous tag" ]; then
+            git log --pretty=format:"%h - %s (%an)" --no-merges ${LAST_TAG}..HEAD
+          else
+            echo "No previous tag found, showing last 10 commits:"
+            git log --pretty=format:"%h - %s (%an)" --no-merges -10
+          fi
 
       - name: Deploy to Dynatrace
         env:
