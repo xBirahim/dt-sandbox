@@ -1,4 +1,3 @@
-import { getAppVersion } from "@dynatrace-sdk/app-environment";
 import { AppHeader } from "@dynatrace/strato-components-preview/layouts";
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
@@ -30,7 +29,7 @@ export const Header = () => {
         <AppHeader.NavItems>
           <AppHeader.AppNavLink as={Link} to="/" />
           <AppHeader.NavItem as={Link} to="/">
-            <span ref={setExamplesRef}>Examples (v{getAppVersion()})</span>
+            <span ref={setExamplesRef}>Examples</span>
           </AppHeader.NavItem>
           <AppHeader.NavItem
             onClick={() => {
