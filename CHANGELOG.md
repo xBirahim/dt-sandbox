@@ -1,3 +1,13 @@
+## [1.0.0-alpha.5](https://github.com/xBirahim/dt-sandbox/compare/v1.0.0-alpha.4...v1.0.0-alpha.5) (2025-08-05)
+
+### ⚠ BREAKING CHANGES
+
+* update page title to 'Sandbox Examples' for clarity
+
+### Features
+
+* update page title to 'Sandbox Examples' for clarity ([a5ecd5a](https://github.com/xBirahim/dt-sandbox/commit/a5ecd5a1b78513842d48aa76fd74c5e1f289573b))
+
 ## [1.0.0-alpha.4](https://github.com/xBirahim/dt-sandbox/compare/v1.0.0-alpha.3...v1.0.0-alpha.4) (2025-08-05)
 
 ### Features
