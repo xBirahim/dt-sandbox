@@ -1,3 +1,9 @@
+## [1.0.0-alpha.3](https://github.com/xBirahim/dt-sandbox/compare/v1.0.0-alpha.2...v1.0.0-alpha.3) (2025-08-05)
+
+### Features
+
+* display application version in the header component ([dab6e81](https://github.com/xBirahim/dt-sandbox/commit/dab6e815ff3a3416902081fd152a223bea24cbaa))
+
 ## [1.0.0-alpha.2](https://github.com/xBirahim/dt-sandbox/compare/v1.0.0-alpha.1...v1.0.0-alpha.2) (2025-08-05)
 
 ### Features
