@@ -30,7 +30,7 @@ const examples = [
 export const Examples = () => {
   return (
     <PageLayout
-      title={"Examples"}
+      title={"Sandbox Examples"}
       subtitle="Demonstration of various UI components and features"
       breadcrumbs={[{ href: "/ui", label: "Home" }]}
     >
