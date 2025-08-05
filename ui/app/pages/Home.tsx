@@ -1,63 +1,28 @@
-import React from "react";
-
-import { useCurrentTheme } from "@dynatrace/strato-components/core";
-import { Flex } from "@dynatrace/strato-components/layouts";
-import {
-  Heading,
-  Paragraph,
-  Strong,
-} from "@dynatrace/strato-components/typography";
-import { Card } from "../components/Card";
+import { Button } from "@dynatrace/strato-components/buttons";
+import { Checkbox, TextInput } from "@dynatrace/strato-components-preview/forms";
+import { parseAsBoolean, parseAsString, useQueryState } from "nuqs";
+import React, { useState } from "react";
 
 export const Home = () => {
-  const theme = useCurrentTheme();
+  const [textParam, setTextParam] = useQueryState("text", parseAsString.withDefault(""));
+  const [checkedParam, setCheckedParam] = useQueryState("checked", parseAsBoolean.withDefault(false));
+  //
+  const [text, setText] = useState(textParam);
+  const [checked, setChecked] = useState(checkedParam);
+
+  const handleSubmit = () => {
+    setTextParam(text);
+    setCheckedParam(checked);
+  };
   return (
-    <Flex flexDirection="column" alignItems="center" padding={32}>
-      <img
-        src="./assets/Dynatrace_Logo.svg"
-        alt="Dynatrace Logo"
-        width={150}
-        height={150}
-        style={{ paddingBottom: 32 }}
-      ></img>
-
-      <Heading>Welcome To Your Dynatrace App</Heading>
-      <Paragraph>
-        Edit <Strong>ui/app/pages/Home.tsx</Strong> and save to reload the app.
-      </Paragraph>
-      <Paragraph>
-        For more information and help on app development, check out the
-        following:
-      </Paragraph>
-
-      <Flex gap={48} paddingTop={64} flexFlow="wrap">
-        <Card
-          href="/data"
-          inAppLink
-          imgSrc={
-            theme === "light" ? "./assets/data.png" : "./assets/data_dark.png"
-          }
-          name="Explore data"
-        />
-        <Card
-          href="https://dt-url.net/developers"
-          imgSrc={
-            theme === "light"
-              ? "./assets/devportal.png"
-              : "./assets/devportal_dark.png"
-          }
-          name="Dynatrace Developer"
-        />
-        <Card
-          href="https://dt-url.net/devcommunity"
-          imgSrc={
-            theme === "light"
-              ? "./assets/community.png"
-              : "./assets/community_dark.png"
-          }
-          name="Developer Community"
-        />
-      </Flex>
-    </Flex>
+    <div>
+      <TextInput value={text} onChange={(newValue) => setText(newValue)} />
+      <Checkbox value={checked} onChange={() => setChecked((prev) => !prev)}>
+        Check Me
+      </Checkbox>
+      <Button variant="accent" onClick={handleSubmit}>
+        Submit
+      </Button>
+    </div>
   );
 };
