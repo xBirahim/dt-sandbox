@@ -69,25 +69,25 @@ jobs:
           # Définir les variables d'abord
           case "${{ github.ref_name }}" in
             main)
-              APP_ID="my.examples.demo"
-              APP_NAME="Examples Demo"
-              APP_DESCRIPTION="Examples Demo- Crafted by Phenisys."
-              SCHEMA_ID="examples-demo"
-              SCHEMA_DISPLAY_NAME="Examples Demo"
+              APP_ID="my.sandbox"
+              APP_NAME="Sandbox"
+              APP_DESCRIPTION="Sandbox - Crafted by Phenisys."
+              SCHEMA_ID="sandbox"
+              SCHEMA_DISPLAY_NAME="Sandbox Demo"
               ;;
             develop)
-              APP_ID="my.examples.demo.development"
-              APP_NAME="(Alpha) Examples Demo"
-              APP_DESCRIPTION="Examples Demo - Crafted by Phenisys."
-              SCHEMA_ID="examples-demo-development"
-              SCHEMA_DISPLAY_NAME="(Alpha) Examples Demo"
+              APP_ID="my.sandbox.development"
+              APP_NAME="(Test) Sandbox"
+              APP_DESCRIPTION="Sandbox - Crafted by Phenisys."
+              SCHEMA_ID="sandbox-development"
+              SCHEMA_DISPLAY_NAME="(Test) Sandbox"
               ;;
             *)
-              APP_ID="my.teams.observability.feature"
-              APP_NAME="(Feature) Microsoft Teams Observability"
-              APP_DESCRIPTION="Feature branch - Crafted by Phenisys."
-              SCHEMA_ID="ms-teams-observability-feature"
-              SCHEMA_DISPLAY_NAME="(Feature) MS Teams Observability"
+              APP_ID="my.sandbox.feature"
+              APP_NAME="(Feature) Sandbox - ${{ github.ref_name }}"
+              APP_DESCRIPTION="(Feature) Sandbox - Crafted by Phenisys."
+              SCHEMA_ID="sandbox-feature"
+              SCHEMA_DISPLAY_NAME="(Feature) Sandbox - ${{ github.ref_name }}"
               ;;
           esac
 
