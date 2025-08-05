@@ -1,3 +1,14 @@
+## [1.0.0-alpha.2](https://github.com/xBirahim/dt-sandbox/compare/v1.0.0-alpha.1...v1.0.0-alpha.2) (2025-08-05)
+
+### Features
+
+* add step to print commits since last release in workflow ([6041ea5](https://github.com/xBirahim/dt-sandbox/commit/6041ea56b7b00311eaebb2f1fb1d43413e9777c7))
+
+### Bug Fixes
+
+* add markdown files to prettier ignore list ([6a95a1d](https://github.com/xBirahim/dt-sandbox/commit/6a95a1d2eb5cb9adc90ecddae2c0c4eeb161dad0))
+* ensure toast message lifespan is set for form submission feedback ([4e0ae08](https://github.com/xBirahim/dt-sandbox/commit/4e0ae082c2d9b201ea1d109f696fa2ca75e7ae88))
+
 ## 1.0.0-alpha.1 (2025-08-05)
 
 ### Features
