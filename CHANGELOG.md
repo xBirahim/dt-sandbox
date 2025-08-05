@@ -1,3 +1,9 @@
+## [2.0.0-alpha.2](https://github.com/xBirahim/dt-sandbox/compare/v2.0.0-alpha.1...v2.0.0-alpha.2) (2025-08-05)
+
+### Bug Fixes
+
+* update App and Header components to include missing imports and adjust version display ([844bca2](https://github.com/xBirahim/dt-sandbox/commit/844bca28aca932bd6d5d330caee516e29cf6839d))
+
 ## [2.0.0-alpha.1](https://github.com/xBirahim/dt-sandbox/compare/v1.0.0...v2.0.0-alpha.1) (2025-08-05)
 
 ### ⚠ BREAKING CHANGES
