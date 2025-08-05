@@ -100,6 +100,8 @@ jobs:
         run: npm ci
 
       - name: Detect next version
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         id: version
         run: |
           # Run semantic-release in dry-run mode to determine next version
