@@ -2,7 +2,7 @@
   "environmentUrl": "https://kso25422.apps.dynatrace.com/",
   "app": {
     "name": "(Test) Sandbox",
-    "version": "1.0.0-alpha.4",
+    "version": "1.0.0-alpha.5",
     "description": "Sandbox - Crafted by Phenisys.",
     "id": "my.sandbox.development",
     "scopes": [
