@@ -1,10 +1,10 @@
 {
   "environmentUrl": "https://kso25422.apps.dynatrace.com/",
   "app": {
-    "name": "(Alpha) Examples Demo",
-    "version": "1.0.0-alpha.2",
-    "description": "Examples Demo - Crafted by Phenisys.",
-    "id": "my.examples.demo.development",
+    "name": "Examples Demo",
+    "version": "1.0.0",
+    "description": "Examples Demo- Crafted by Phenisys.",
+    "id": "my.examples.demo",
     "scopes": [
       {
         "name": "storage:logs:read",
