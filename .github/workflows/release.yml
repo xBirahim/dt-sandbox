@@ -299,6 +299,11 @@ jobs:
           npx dt-app build
           echo "✅ Build completed"
 
+      - name: Print Commits
+        run: |
+          echo "📜 Commits since last release:"
+          git log --pretty=format:"%h - %s (%an)" --no-merges $(git describe --tags --abbrev=0)..HEAD
+
       - name: Deploy to Dynatrace
         env:
           DT_APP_OAUTH_CLIENT_ID: ${{ secrets.DT_APP_OAUTH_CLIENT_ID }}
